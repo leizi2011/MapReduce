@@ -1,0 +1,59 @@
+package test;
+
+import java.io.IOException;
+import java.util.List;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.KeyValue;
+import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
+
+public class HbaseManger {
+	private HTableInterface table;
+	//表的数据相关操作
+  public HbaseManger(String tablename){
+	  try {
+		 table = new HTable(HBaseConfiguration.create(new Configuration()),tablename);
+	} catch (IOException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+  }
+  
+  public static HbaseManger getHbaseManger(String tablename){
+	  HbaseManger h=new HbaseManger(tablename);
+	  return h;
+  }
+  
+  public void queryAll () throws IOException{
+	  Scan s=new Scan();
+	  ResultScanner scanner= table.getScanner(s);
+	  for (Result result : scanner) {
+			for (KeyValue kv : result.raw()) {
+				System.out.print(new String(kv.getRow()) + " ");
+				System.out.print("====");
+				System.out.print(new String(kv.getFamily()) + ":");
+				System.out.print("===");
+				System.out.print(new String(kv.getQualifier()) + " ");
+				System.out.print("===");
+				System.out.print(kv.getTimestamp() + " ");
+				System.out.print("=============");
+				System.out.println(new String(kv.getValue()));
+			}
+		}
+  }
+  
+  public void insertData(List<Put> put) {
+	  try {
+		table.put(put);
+	} catch (IOException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+  }
+}
