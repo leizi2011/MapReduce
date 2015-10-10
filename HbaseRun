@@ -1,0 +1,20 @@
+package test;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.hadoop.hbase.client.Put;
+
+public class HbaseRun {
+	
+
+	public static void main(String[] args) {
+		HbaseManger h=new HbaseManger("migunet_base_user_recommend_table");
+	    HbaseClient hc = HbaseClient.getClient(); 
+        hc.exists("migunet_base_user_recommend_table");
+        List<Put> put=new ArrayList<Put>();
+        h.insertData(put);
+	}
+
+}
