@@ -1,0 +1,33 @@
+package test;
+
+import java.io.IOException;
+
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.HBaseAdmin;
+
+public class HbaseClient {
+	private HBaseAdmin admin;
+    //获取hbase表的状态，建表相关命令
+	private HbaseClient() throws  IOException
+	{
+		admin = new HBaseAdmin(HBaseConfiguration.create());
+	}
+    public static HbaseClient getClient()  {
+    	HbaseClient h = null;
+		try {
+			h = new HbaseClient();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return h;}
+    
+    public void exists(String tablename){
+    	try {
+			System.out.println(admin.tableExists(tablename));
+		} catch (IOException e) {
+			
+			e.printStackTrace();
+		}
+    }
+}
