@@ -1,0 +1,211 @@
+package test;
+import java.io.IOException;
+import java.util.List;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.HColumnDescriptor;
+import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.KeyValue;
+import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.util.Bytes;
+
+public class HbaseTest {
+
+	private static HTable table;
+
+	public static void create(String tableName, String columnFamily)
+			throws IOException {
+		HBaseAdmin admin = new HBaseAdmin(getConfiguration());
+		if (admin.tableExists(tableName)) {
+			System.out.println("table exists!");
+		} else {
+			HTableDescriptor tableDesc = new HTableDescriptor(tableName);
+			tableDesc.addFamily(new HColumnDescriptor(columnFamily));
+			admin.createTable(tableDesc);
+			System.out.println("create table success!");
+		}
+
+	}
+
+	public static Configuration getConfiguration() {
+		Configuration conf = HBaseConfiguration.create();
+//		 conf.set("hbase.rootdir", "hdfs://192.168.16.1:9000/hbase");
+		 conf.set("hbase.zookeeper.quorum", "192.168.16.1");
+		 conf.set("hbase.zookeeper.property.clientPort", "2181");
+		// 从hbase-site.xml读取配置文件 ，该配置文件放在conf目录下，需要在properties指定class文件路径
+		System.out.println(conf.get("hbase.zookeeper.quorum"));
+		System.out.println(conf.get("hbase.rootdir"));
+		return conf;
+	}
+
+	@SuppressWarnings("deprecation")
+	public static void scan(String tableName) throws IOException {
+
+		table = new HTable(getConfiguration(), tableName);
+        System.out.println("============================");
+ 		Scan scans = new Scan();
+ 		System.out.println("+++++++++++++++++++++++++++++");
+ 		
+		ResultScanner scanner = table.getScanner(scans);
+	    System.out.println("---------------------------");
+		System.out.println(scanner);
+		for (Result result : scanner) {
+			for (KeyValue kv : result.raw()) {
+				System.out.print(new String(kv.getRow()) + " ");
+				System.out.print("====");
+				System.out.print(new String(kv.getFamily()) + ":");
+				System.out.print("===");
+				System.out.print(new String(kv.getQualifier()) + " ");
+				System.out.print("===");
+				System.out.print(kv.getTimestamp() + " ");
+				System.out.print("=============");
+				System.out.println(new String(kv.getValue()));
+			}
+		}
+
+	}
+
+	public static void get(String tableName) throws IOException {
+		table = new HTable(getConfiguration(), tableName);
+		Get get = new Get(Bytes.toBytes("12345678901"));
+		get.setMaxVersions();
+		// get.addColumn(Bytes.toBytes("recommend"),
+		// Bytes.toBytes("readSimilarity"));
+		Result result1 = table.get(get);
+		List<KeyValue> list = result1.list();
+		System.out.println(list.isEmpty());
+		for (final KeyValue kv : list) {
+			// System.out.println("value: "+ kv+
+			// " str: "+Bytes.toString(kv.getValue()));
+			System.out
+					.println(String
+							.format("row:%s, family:%s, qualifier:%s, qualifiervalue:%s, timestamp:%s.",
+									Bytes.toString(kv.getRow()),
+									Bytes.toString(kv.getFamily()),
+									Bytes.toString(kv.getQualifier()),
+									Bytes.toString(kv.getValue()),
+									kv.getTimestamp()));
+		}
+	}
+
+	public static void put(String tableName, String row, String columnFamily,
+			String column, String data) throws IOException {
+		
+		System.out.println("put 111111111111");
+		table = new HTable(getConfiguration(), tableName);
+		int count = 1;
+	    long ts=System.currentTimeMillis();  
+		//long ts=1432024992;
+		for (int i = 0; i < count; i++) {
+			long rowkey1 = Long.valueOf(row).longValue() + i;
+			Put put = new Put(String.format(row, rowkey1).getBytes());
+			put.add(Bytes.toBytes(columnFamily), Bytes.toBytes(column),ts,
+					Bytes.toBytes(data));
+					table.put(put);
+			System.out.println("put '" + row + "','" + columnFamily + ":"
+					+ column + "','" + data + "'");
+		}
+	}
+	public static void puts(String tableName, String row, String columnFamily,
+			String column1,String column2,String column3,String column4,String column5) throws IOException {
+		
+		System.out.println("put 111111111111");
+		table = new HTable(getConfiguration(), tableName);
+		int count = 1;
+		//long ts=System.currentTimeMillis();  
+		String data1="70";
+		String data2="10";
+		String data3="视频";
+		String data4="13";
+		String data5="坐车,度假";
+		long ts=1430924992996L;
+		for (int i = 0; i < count; i++) {
+			long rowkey1 = Long.valueOf(row).longValue() + i;
+			Put put = new Put(String.format(row, rowkey1).getBytes());
+			put.add(Bytes.toBytes(columnFamily), Bytes.toBytes(column1),ts,
+					Bytes.toBytes(data1));
+			put.add(Bytes.toBytes(columnFamily), Bytes.toBytes(column2),ts,
+					Bytes.toBytes(data2));
+			put.add(Bytes.toBytes(columnFamily), Bytes.toBytes(column3),ts,
+					Bytes.toBytes(data3));
+			put.add(Bytes.toBytes(columnFamily), Bytes.toBytes(column4),ts,
+					Bytes.toBytes(data4));
+			put.add(Bytes.toBytes(columnFamily), Bytes.toBytes(column5),ts,
+					Bytes.toBytes(data5));
+			table.put(put);
+			System.out.println("put '" + row + "','" + columnFamily + ":"
+					+ column1 + "','" + data1 + "'");
+			System.out.println("put '" + row + "','" + columnFamily + ":"
+					+ column2 + "','" + data2 + "'");
+			System.out.println("put '" + row + "','" + columnFamily + ":"
+					+ column3 + "','" + data3 + "'");
+			System.out.println("put '" + row + "','" + columnFamily + ":"
+					+ column4 + "','" + data4 + "'");
+			System.out.println("put '" + row + "','" + columnFamily + ":"
+					+ column5 + "','" + data5 + "'");
+			
+		}
+	}
+
+	public static void GetData(String tableName, String row,
+		String columnFamily, String column) throws IOException {
+		HTable table = new HTable(getConfiguration(), tableName);
+		// Scan scan = new Scan();
+		// ResultScanner result = table.getScanner(scan);
+		Get get = new Get(Bytes.toBytes(row));
+		get.setMaxVersions();
+		Result result = table.get(get);
+		List<KeyValue> list = result.list();
+		//System.out.println(list.size());
+		for (final KeyValue kv : list) {
+			// System.out.println("value: "+ kv+
+			// " str: "+Bytes.toString(kv.getValue()));
+			System.out
+					.println(String
+							.format("row:%s, family:%s, qualifier:%s, qualifiervalue:%s, timestamp:%s.",
+									Bytes.toString(kv.getRow()),
+									Bytes.toString(kv.getFamily()),
+									Bytes.toString(kv.getQualifier()),
+									Bytes.toString(kv.getValue()),
+									kv.getTimestamp()));
+		}
+		// byte[] rb = result.getValue(Bytes.toBytes(columnFamily),
+		// Bytes.toBytes(column));
+
+		// String value = new String(rb,"UTF-8");
+
+		// System.out.println(value);
+	}
+
+	public static void main(String[] args) throws IOException {
+		String tableName = "migunet_base_user_recommend_table";
+		// String columnFamily = "recommend";
+		//String tableName = "migunet_web_user_label_table";
+		String columnFamily = "label";
+		//String row = "12345678901";
+		String row ="18986799809";
+		String column1 = "active_label";
+		String column2 = "fee_label";
+		String column3 = "hobbies";
+		String column4 = "internetpref";
+		String column5 = "style";
+		// HbaseTest.create(tableName, columnFamily);
+		 HbaseTest.scan(tableName);
+		// HbaseTest.get(tableName);
+		//HbaseTest.GetData(tableName, row, columnFamily, column);
+		String data = "test1";
+	    //HbaseTest.put(tableName, row, columnFamily, column1,data);
+	   //HbaseTest.puts(tableName, row, columnFamily, column1,column2,column3,column4,column5);
+	   // HbaseTest.GetData(tableName, row, columnFamily, column5);
+		//HbaseTest.get(tableName);
+		//HbaseDataM.deleteData(tableName, row);
+		//HbaseTest.GetData(tableName, row, columnFamily, column5);
+	}
+}
